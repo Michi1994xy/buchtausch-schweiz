@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buchtausch Schweiz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="#" class="logo" onclick="showPage('home')">
+      <span class="logo-icon">📚</span>
+      <span class="logo-text">Buchtausch <em>Schweiz</em></span>
+    </a>
+    <div class="nav-links">
+      <a href="#" onclick="showPage('suchen')" data-i18n="nav_suchen">Bücher suchen</a>
+      <a href="#" onclick="showPage('karte')" data-i18n="nav_karte">Karte</a>
+      <a href="#" onclick="requireAuth('bibliothek')" data-i18n="nav_bibliothek">Meine Bücher</a>
+      <a href="#" onclick="requireAuth('matches')" data-i18n="nav_matches">Matches</a>
+      <a href="#" onclick="requireAuth('nachrichten')" data-i18n="nav_nachrichten">Nachrichten</a>
+    </div>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button onclick="setLang('de')" class="lang-btn" id="lang-de">DE</button>
+        <button onclick="setLang('fr')" class="lang-btn" id="lang-fr">FR</button>
+        <button onclick="setLang('it')" class="lang-btn" id="lang-it">IT</button>
+      </div>
+      <div id="navAuthArea">
+        <button class="btn-outline" onclick="showPage('login')" data-i18n="nav_login">Anmelden</button>
+        <button class="btn-primary" onclick="showPage('register')" data-i18n="nav_register">Registrieren</button>
+      </div>
+      <div id="navUserArea" style="display:none">
+        <div class="notif-bell" onclick="requireAuth('benachrichtigungen')" id="notifBell">
+          🔔<span class="notif-badge" id="notifBadge" style="display:none">0</span>
+        </div>
+        <div class="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="userAvatar">M</div>
+          <span id="userName"></span>
+          <span>▾</span>
+        </div>
+        <div class="user-dropdown" id="userDropdown">
+          <a href="#" onclick="showPage('profil')">👤 <span data-i18n="nav_profil">Profil</span></a>
+          <a href="#" onclick="requireAuth('wunschliste')">❤️ <span data-i18n="nav_wunschliste">Wunschliste</span></a>
+          <hr/>
+          <a href="#" onclick="logout()">🚪 <span data-i18n="nav_logout">Abmelden</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main id="mainContent">
+
+  <!-- HOME -->
+  <div id="page-home" class="page active">
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-badge" data-i18n="hero_badge">🇨🇭 Die Schweizer Buchtausch-Plattform</div>
+        <h1 class="hero-title" data-i18n="hero_title">Bücher tauschen,<br><em>Freude teilen</em></h1>
+        <p class="hero-sub" data-i18n="hero_sub">Tausche Bücher direkt oder mit Buchpunkten. Finde Tauschpartner in deiner Nähe – kostenlos und nachhaltig.</p>
+        <div class="hero-actions">
+          <button class="btn-hero" onclick="showPage('register')" data-i18n="hero_cta">Jetzt mitmachen</button>
+          <button class="btn-hero-outline" onclick="showPage('suchen')" data-i18n="hero_browse">Bücher entdecken</button>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><span id="statBuecher">–</span><small data-i18n="stat_buecher">Bücher</small></div>
+          <div class="stat"><span id="statNutzer">–</span><small data-i18n="stat_nutzer">Nutzer</small></div>
+          <div class="stat"><span id="statTausche">–</span><small data-i18n="stat_tausche">Tausche</small></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="book-stack">
+          <div class="book b1"></div>
+          <div class="book b2"></div>
+          <div class="book b3"></div>
+          <div class="book b4"></div>
+          <div class="book b5"></div>
+        </div>
+      </div>
+    </section>
+    <section class="how-it-works">
+      <h2 data-i18n="how_title">So funktioniert's</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon">📖</div>
+          <h3 data-i18n="step1_title">Bücher eintragen</h3>
+          <p data-i18n="step1_text">Trage deine Bücher ein und erstelle deine Wunschliste.</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step">
+          <div class="step-icon">🔍</div>
+          <h3 data-i18n="step2_title">Match finden</h3>
+          <p data-i18n="step2_text">Das System findet automatisch passende Tauschpartner in deiner Nähe.</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step">
+          <div class="step-icon">🤝</div>
+          <h3 data-i18n="step3_title">Tauschen</h3>
+          <p data-i18n="step3_text">Tausche direkt oder nutze Buchpunkte. Persönlich oder per Post.</p>
+        </div>
+      </div>
+    </section>
+    <section class="recent-books container">
+      <h2 data-i18n="recent_title">Zuletzt eingetragen</h2>
+      <div class="books-grid" id="recentBooks"><div class="loading-spinner"></div></div>
+    </section>
+  </div>
+
+  <!-- SUCHEN -->
+  <div id="page-suchen" class="page">
+    <div class="container">
+      <div class="page-header">
+        <h1 data-i18n="suchen_title">Bücher suchen</h1>
+      </div>
+      <div class="search-bar-wrap">
+        <input type="text" id="searchInput" class="search-input" placeholder="Titel, Autor oder ISBN..." oninput="searchBooks()" />
+        <div class="filter-row">
+          <select id="filterSprache" onchange="searchBooks()">
+            <option value="">Alle Sprachen</option>
+            <option value="de">Deutsch</option>
+            <option value="fr">Français</option>
+            <option value="it">Italiano</option>
+            <option value="en">English</option>
+          </select>
+          <select id="filterUebergabe" onchange="searchBooks()">
+            <option value="">Alle Übergabearten</option>
+            <option value="persoenlich">Persönlich</option>
+            <option value="versand">Versand</option>
+            <option value="beides">Beides</option>
+          </select>
+          <select id="filterRadius" onchange="searchBooks()">
+            <option value="">Ganze Schweiz</option>
+            <option value="10">10 km</option>
+            <option value="25">25 km</option>
+            <option value="50">50 km</option>
+            <option value="100">100 km</option>
+          </select>
+        </div>
+      </div>
+      <div class="books-grid" id="searchResults"><div class="loading-spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- KARTE -->
+  <div id="page-karte" class="page">
+    <div class="container">
+      <div class="page-header">
+        <h1 data-i18n="karte_title">Deponie-Standorte</h1>
+        <p data-i18n="karte_sub">Orte wo du Bücher hinterlegen und abholen kannst</p>
+      </div>
+      <div class="deponie-liste" id="deponieList"><div class="loading-spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="page-login" class="page">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <div class="auth-logo">📚</div>
+        <h2 data-i18n="login_title">Willkommen zurück</h2>
+        <p class="auth-sub" data-i18n="login_sub">Melde dich an um Bücher zu tauschen</p>
+        <div id="loginError" class="error-msg" style="display:none"></div>
+        <div class="form-group">
+          <label>E-Mail</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="deine@email.ch" />
+        </div>
+        <div class="form-group">
+          <label>Passwort</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()" />
+        </div>
+        <button class="btn-primary full" onclick="login()" data-i18n="login_btn">Anmelden</button>
+        <p class="auth-switch">Noch kein Konto? <a href="#" onclick="showPage('register')">Jetzt registrieren</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="page-register" class="page">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <div class="auth-logo">📚</div>
+        <h2 data-i18n="register_title">Konto erstellen</h2>
+        <p class="auth-sub">Starte mit 3 Buchpunkten 🎁</p>
+        <div id="registerError" class="error-msg" style="display:none"></div>
+        <div id="registerSuccess" class="success-msg" style="display:none"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Vorname</label>
+            <input type="text" id="registerVorname" class="form-input" placeholder="Max" />
+          </div>
+          <div class="form-group">
+            <label>Nachname</label>
+            <input type="text" id="registerNachname" class="form-input" placeholder="Muster" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Benutzername</label>
+          <input type="text" id="registerUsername" class="form-input" placeholder="max_muster" />
+        </div>
+        <div class="form-group">
+          <label>E-Mail</label>
+          <input type="email" id="registerEmail" class="form-input" placeholder="max@email.ch" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>PLZ</label>
+            <input type="text" id="registerPlz" class="form-input" placeholder="8001" maxlength="4" />
+          </div>
+          <div class="form-group">
+            <label>Ort</label>
+            <input type="text" id="registerOrt" class="form-input" placeholder="Zürich" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Passwort</label>
+          <input type="password" id="registerPassword" class="form-input" placeholder="Mindestens 6 Zeichen" />
+        </div>
+        <div class="form-group">
+          <label>Sprache der Oberfläche</label>
+          <select id="registerSprache" class="form-input">
+            <option value="de">Deutsch</option>
+            <option value="fr">Français</option>
+            <option value="it">Italiano</option>
+          </select>
+        </div>
+        <button class="btn-primary full" onclick="register()" data-i18n="register_btn">Konto erstellen</button>
+        <p class="auth-switch">Schon ein Konto? <a href="#" onclick="showPage('login')">Anmelden</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BIBLIOTHEK -->
+  <div id="page-bibliothek" class="page">
+    <div class="container">
+      <div class="page-header">
+        <h1 data-i18n="bibliothek_title">Meine Bücher</h1>
+        <button class="btn-primary" onclick="showAddBookModal()" data-i18n="bibliothek_add">+ Buch hinzufügen</button>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('angebote', this)" data-i18n="tab_angebote">Meine Angebote</button>
+        <button class="tab" onclick="switchTab('wunschliste-tab', this)" data-i18n="tab_wunschliste">Wunschliste</button>
+      </div>
+      <div id="tab-angebote" class="tab-content active">
+        <div class="books-grid" id="myBooks"><div class="loading-spinner"></div></div>
+      </div>
+      <div id="tab-wunschliste-tab" class="tab-content">
+        <div class="books-grid" id="myWishlist"><div class="loading-spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATCHES -->
+  <div id="page-matches" class="page">
+    <div class="container">
+      <div class="page-header">
+        <h1 data-i18n="matches_title">Meine Matches</h1>
+        <p data-i18n="matches_sub">Automatisch gefundene Tauschpartner</p>
+      </div>
+      <div id="matchesList" class="matches-list"><div class="loading-spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- NACHRICHTEN -->
+  <div id="page-nachrichten" class="page">
+    <div class="container">
+      <div class="page-header">
+        <h1 data-i18n="nachrichten_title">Nachrichten</h1>
+      </div>
+      <div class="messages-layout">
+        <div class="conversations-list" id="conversationsList"><div class="loading-spinner"></div></div>
+        <div class="message-thread" id="messageThread">
+          <div class="no-conversation">← Wähle eine Konversation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFIL -->
+  <div id="page-profil" class="page">
+    <div class="container">
+      <div class="page-header">
+        <h1 data-i18n="profil_title">Mein Profil</h1>
+      </div>
+      <div class="profil-card">
+        <div class="profil-left">
+          <div class="profil-avatar-big" id="profilAvatar">M</div>
+          <div class="punkte-badge">🪙 <span id="profilPunkte">3</span> Buchpunkte</div>
+        </div>
+        <div class="profil-form">
+          <div class="form-group">
+            <label>Benutzername</label>
+            <input type="text" id="profilUsername" class="form-input" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Vorname</label>
+              <input type="text" id="profilVorname" class="form-input" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>PLZ</label>
+              <input type="text" id="profilPlz" class="form-input" maxlength="4" />
+            </div>
+            <div class="form-group">
+              <label>Ort</label>
+              <input type="text" id="profilOrt" class="form-input" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Sprache</label>
+            <select id="profilSprache" class="form-input">
+              <option value="de">Deutsch</option>
+              <option value="fr">Français</option>
+              <option value="it">Italiano</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="saveProfile()">Speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BENACHRICHTIGUNGEN -->
+  <div id="page-benachrichtigungen" class="page">
+    <div class="container">
+      <div class="page-header">
+        <h1>🔔 Benachrichtigungen</h1>
+      </div>
+      <div id="notifList" class="notif-list"><div class="loading-spinner"></div></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL: Buch hinzufügen -->
+<div id="addBookModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal('addBookModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Buch hinzufügen</h3>
+      <button class="modal-close" onclick="closeModal('addBookModal')">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="tab active" onclick="switchModalTab('angebot', this)">Ich biete an</button>
+      <button class="tab" onclick="switchModalTab('wunsch', this)">Ich wünsche mir</button>
+    </div>
+    <div id="modal-angebot" class="modal-tab-content active">
+      <div class="form-group">
+        <label>Titel *</label>
+        <input type="text" id="bookTitel" class="form-input" placeholder="Buchtitel" />
+      </div>
+      <div class="form-group">
+        <label>Autor *</label>
+        <input type="text" id="bookAutor" class="form-input" placeholder="Autorenname" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>ISBN (optional)</label>
+          <input type="text" id="bookIsbn" class="form-input" placeholder="978-..." />
+        </div>
+        <div class="form-group">
+          <label>Buchsprache</label>
+          <select id="bookSprache" class="form-input">
+            <option value="de">Deutsch</option>
+            <option value="fr">Français</option>
+            <option value="it">Italiano</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Zustand</label>
+          <select id="bookZustand" class="form-input">
+            <option value="neuwertig">Neuwertig</option>
+            <option value="gut" selected>Gut</option>
+            <option value="akzeptabel">Akzeptabel</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Übergabe</label>
+          <select id="bookUebergabe" class="form-input">
+            <option value="beides">Persönlich & Versand</option>
+            <option value="persoenlich">Nur persönlich</option>
+            <option value="versand">Nur Versand</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notiz (optional)</label>
+        <textarea id="bookNotiz" class="form-input" rows="2" placeholder="z.B. leichte Gebrauchsspuren..."></textarea>
+      </div>
+      <button class="btn-primary full" onclick="addBook('angebot')">Buch eintragen</button>
+    </div>
+    <div id="modal-wunsch" class="modal-tab-content">
+      <div class="form-group">
+        <label>Titel *</label>
+        <input type="text" id="wishTitel" class="form-input" placeholder="Buchtitel" />
+      </div>
+      <div class="form-group">
+        <label>Autor *</label>
+        <input type="text" id="wishAutor" class="form-input" placeholder="Autorenname" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>ISBN (optional)</label>
+          <input type="text" id="wishIsbn" class="form-input" placeholder="978-..." />
+        </div>
+        <div class="form-group">
+          <label>Buchsprache</label>
+          <select id="wishSprache" class="form-input">
+            <option value="de">Deutsch</option>
+            <option value="fr">Français</option>
+            <option value="it">Italiano</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary full" onclick="addBook('wunsch')">Auf Wunschliste setzen</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
