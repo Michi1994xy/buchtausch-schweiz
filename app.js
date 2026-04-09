@@ -212,6 +212,7 @@ function switchModalTab(tabId, btn) {
 
 // ── AUTH ─────────────────────────────────────────────────
 async function login() {
+  console.log('login called');
   const email = document.getElementById('loginEmail').value.trim();
   const pw = document.getElementById('loginPassword').value;
   const errEl = document.getElementById('loginError');
