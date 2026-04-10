@@ -212,15 +212,18 @@ function switchModalTab(tabId, btn) {
 
 // ── AUTH ─────────────────────────────────────────────────
 async function login() {
-  console.log('login called');
   const email = document.getElementById('loginEmail').value.trim();
   const pw = document.getElementById('loginPassword').value;
   const errEl = document.getElementById('loginError');
   errEl.style.display = 'none';
   if (!email || !pw) { errEl.textContent = 'Bitte E-Mail und Passwort eingeben.'; errEl.style.display = 'block'; return; }
-  const { error } = await sb.auth.signInWithPassword({ email, password: pw });
-  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
-  else { showPage('home'); }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  currentUser = data.user;
+  await loadCurrentProfile();
+  updateNavAuth();
+  checkNotifications();
+  showPage('home');
 }
 
 async function register() {
