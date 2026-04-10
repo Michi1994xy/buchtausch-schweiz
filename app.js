@@ -220,6 +220,7 @@ async function login() {
   if (!email || !pw) { errEl.textContent = 'Bitte E-Mail und Passwort eingeben.'; errEl.style.display = 'block'; return; }
   const { error } = await sb.auth.signInWithPassword({ email, password: pw });
   if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
+  else { showPage('home'); }
 }
 
 async function register() {
